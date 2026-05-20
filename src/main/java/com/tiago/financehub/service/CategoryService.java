@@ -18,27 +18,31 @@ public class CategoryService {
     }
 
     public List<CategoryResponseDTO> listar() {
-
         return repository.findAll()
                 .stream()
-                .map(category -> new CategoryResponseDTO(
-                        category.getId(),
-                        category.getName()
-                ))
+                .map(c -> new CategoryResponseDTO(c.getId(), c.getName()))
                 .toList();
     }
 
     public CategoryResponseDTO salvar(CategoryRequestDTO dto) {
-
         Category category = new Category();
-
         category.setName(dto.getName());
+        Category saved = repository.save(category);
+        return new CategoryResponseDTO(saved.getId(), saved.getName());
+    }
 
-        Category savedCategory = repository.save(category);
+    public CategoryResponseDTO atualizar(Long id, CategoryRequestDTO dto) {
+        Category category = repository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Category not found"));
+        category.setName(dto.getName());
+        Category saved = repository.save(category);
+        return new CategoryResponseDTO(saved.getId(), saved.getName());
+    }
 
-        return new CategoryResponseDTO(
-                savedCategory.getId(),
-                savedCategory.getName()
-        );
+    public void deletar(Long id) {
+        if (!repository.existsById(id)) {
+            throw new RuntimeException("Category not found");
+        }
+        repository.deleteById(id);
     }
 }
