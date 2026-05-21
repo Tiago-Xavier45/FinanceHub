@@ -10,7 +10,7 @@ import { RouterLink } from '@angular/router';
     <!-- Topbar -->
     <header class="topbar">
       <div>
-        <p class="greeting">Olá, Lucas</p>
+        <p class="greeting">Olá, {{ userName }}</p>
         <h1 class="page-title">Visão geral</h1>
       </div>
       <div class="topbar-actions">
@@ -329,6 +329,7 @@ import { RouterLink } from '@angular/router';
   `]
 })
 export class DashboardComponent implements OnInit {
+  userName = localStorage.getItem('name') || 'Usuário';
   kpis = [
     { label: 'Saldo total', value: 'R$ 24.860,42', delta: '+12,4%', up: true, glow: 'from-brand to-indigo-400' },
     { label: 'Receitas (mai)', value: 'R$ 8.200,00', delta: '+3,1%', up: true, glow: 'from-emerald-400 to-teal-400' },

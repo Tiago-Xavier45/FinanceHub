@@ -1,14 +1,15 @@
-import { Component } from '@angular/core';
-import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
+import { Component, OnInit } from '@angular/core';
+import { RouterOutlet, RouterLink, RouterLinkActive, NavigationEnd, Router } from '@angular/router';
 import { AuthService } from './services/auth.service';
 import { NgIf } from '@angular/common';
+import { filter } from 'rxjs/operators';
 
 @Component({
   selector: 'app-root',
   standalone: true,
   imports: [RouterOutlet, RouterLink, RouterLinkActive, NgIf],
   template: `
-    <ng-container *ngIf="auth.isLoggedIn(); else authPages">
+    <ng-container *ngIf="showSidebar">
       <div class="layout">
         <!-- Sidebar -->
         <aside class="sidebar">
@@ -59,11 +60,14 @@ import { NgIf } from '@angular/common';
             </div>
 
             <div class="user-card">
-              <div class="avatar">LS</div>
+              <div class="avatar">{{ auth.getUserName()?.charAt(0)?.toUpperCase() || 'U' }}{{ auth.getUserName()?.split(' ')?.pop()?.charAt(0)?.toUpperCase() || '' }}</div>
               <div class="user-info">
-                <p class="user-name">Lucas Silva</p>
-                <p class="user-email">lucas&#64;finvex.com</p>
+                <p class="user-name">{{ auth.getUserName() }}</p>
+                <p class="user-email">{{ auth.getUserEmail() }}</p>
               </div>
+              <button class="logout-btn" title="Sair" (click)="auth.logout()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
+              </button>
             </div>
           </div>
         </aside>
@@ -75,9 +79,9 @@ import { NgIf } from '@angular/common';
       </div>
     </ng-container>
 
-    <ng-template #authPages>
+    <ng-container *ngIf="!showSidebar">
       <router-outlet />
-    </ng-template>
+    </ng-container>
   `,
   styles: [`
     .layout { display: flex; min-height: 100vh; }
@@ -120,16 +124,35 @@ import { NgIf } from '@angular/common';
     .premium-btn { width: 100%; background: var(--brand); color: white; border: none; padding: 8px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer; }
     .premium-btn:hover { opacity: 0.9; }
 
-    .user-card { display: flex; align-items: center; gap: 10px; padding: 8px; border-radius: 8px; cursor: pointer; }
+    .user-card { display: flex; align-items: center; gap: 10px; padding: 8px; border-radius: 8px; }
     .user-card:hover { background: var(--surface); }
     .avatar { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #34d399, var(--brand)); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; color: white; flex-shrink: 0; }
-    .user-info { min-width: 0; }
+    .user-info { min-width: 0; flex: 1; }
     .user-name { font-size: 13px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .user-email { font-size: 11px; color: var(--muted-foreground); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .logout-btn { display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 6px; border: none; background: transparent; color: var(--muted-foreground); cursor: pointer; transition: all 0.15s; flex-shrink: 0; }
+    .logout-btn:hover { background: rgba(251,113,133,0.15); color: #fb7185; }
 
     .main { flex: 1; min-width: 0; }
   `]
 })
-export class App {
-  constructor(public auth: AuthService) {}
+export class App implements OnInit {
+  showSidebar = false;
+  private authPages = ['/login', '/register'];
+
+  constructor(
+    public auth: AuthService,
+    private router: Router,
+  ) {}
+
+  ngOnInit() {
+    this.updateSidebar(this.router.url);
+    this.router.events
+      .pipe(filter((e) => e instanceof NavigationEnd))
+      .subscribe((e: NavigationEnd) => this.updateSidebar(e.url));
+  }
+
+  private updateSidebar(url: string) {
+    this.showSidebar = this.auth.isLoggedIn() && !this.authPages.some((p) => url.startsWith(p));
+  }
 }
