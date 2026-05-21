@@ -39,6 +39,14 @@ export class AuthService {
     return localStorage.getItem('token');
   }
 
+  getUserName(): string {
+    return localStorage.getItem('name') || 'Usuário';
+  }
+
+  getUserEmail(): string {
+    return localStorage.getItem('email') || '';
+  }
+
   isLoggedIn(): boolean {
     return !!this.getToken();
   }

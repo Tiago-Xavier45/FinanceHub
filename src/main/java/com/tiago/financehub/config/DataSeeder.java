@@ -3,6 +3,7 @@ package com.tiago.financehub.config;
 import com.tiago.financehub.entity.*;
 import com.tiago.financehub.enums.TransactionType;
 import com.tiago.financehub.repository.*;
+import com.tiago.financehub.service.TenantSetupService;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
@@ -12,15 +13,18 @@ import java.time.LocalDate;
 @Component
 public class DataSeeder implements CommandLineRunner {
 
+    private final TenantSetupService tenantSetupService;
     private final CategoryRepository categoryRepository;
     private final TransactionRepository transactionRepository;
     private final GoalRepository goalRepository;
     private final AccountRepository accountRepository;
 
-    public DataSeeder(CategoryRepository categoryRepository,
+    public DataSeeder(TenantSetupService tenantSetupService,
+                      CategoryRepository categoryRepository,
                       TransactionRepository transactionRepository,
                       GoalRepository goalRepository,
                       AccountRepository accountRepository) {
+        this.tenantSetupService = tenantSetupService;
         this.categoryRepository = categoryRepository;
         this.transactionRepository = transactionRepository;
         this.goalRepository = goalRepository;
@@ -29,6 +33,8 @@ public class DataSeeder implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
+        tenantSetupService.createSchema("public");
+
         if (categoryRepository.count() > 0) return;
 
         Category moradia = saveCategory("Moradia");

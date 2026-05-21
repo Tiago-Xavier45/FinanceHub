@@ -1,6 +1,5 @@
 package com.tiago.financehub.service;
 
-import com.tiago.financehub.config.TenantContext;
 import com.tiago.financehub.dto.AuthResponseDTO;
 import com.tiago.financehub.dto.LoginRequestDTO;
 import com.tiago.financehub.dto.RegisterRequestDTO;
@@ -13,6 +12,7 @@ import com.tiago.financehub.repository.UserRepository;
 import com.tiago.financehub.security.JwtTokenProvider;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Set;
 
@@ -40,6 +40,7 @@ public class AuthService {
         this.tenantSetupService = tenantSetupService;
     }
 
+    @Transactional
     public AuthResponseDTO register(RegisterRequestDTO dto) {
         if (userRepository.findByEmail(dto.getEmail()).isPresent()) {
             throw new RuntimeException("Email already registered");
@@ -68,6 +69,7 @@ public class AuthService {
         return new AuthResponseDTO(token, user.getEmail(), user.getName(), schemaName);
     }
 
+    @Transactional(readOnly = true)
     public AuthResponseDTO login(LoginRequestDTO dto) {
         User user = userRepository.findByEmail(dto.getEmail())
                 .orElseThrow(() -> new RuntimeException("Invalid credentials"));

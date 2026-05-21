@@ -16,6 +16,39 @@ public class TenantSetupService {
         jdbcTemplate.execute("CREATE SCHEMA IF NOT EXISTS " + schemaName);
 
         jdbcTemplate.execute("""
+            CREATE TABLE IF NOT EXISTS %s.tenants (
+                id BIGSERIAL PRIMARY KEY,
+                name VARCHAR(255) NOT NULL UNIQUE,
+                schema VARCHAR(255) NOT NULL UNIQUE
+            )
+        """.formatted(schemaName));
+
+        jdbcTemplate.execute("""
+            CREATE TABLE IF NOT EXISTS %s.roles (
+                id BIGSERIAL PRIMARY KEY,
+                name VARCHAR(255) NOT NULL UNIQUE
+            )
+        """.formatted(schemaName));
+
+        jdbcTemplate.execute("""
+            CREATE TABLE IF NOT EXISTS %s.users (
+                id BIGSERIAL PRIMARY KEY,
+                email VARCHAR(255) NOT NULL UNIQUE,
+                password VARCHAR(255) NOT NULL,
+                name VARCHAR(255) NOT NULL,
+                tenant_id BIGINT NOT NULL REFERENCES %s.tenants(id)
+            )
+        """.formatted(schemaName, schemaName));
+
+        jdbcTemplate.execute("""
+            CREATE TABLE IF NOT EXISTS %s.users_roles (
+                user_id BIGINT NOT NULL REFERENCES %s.users(id),
+                role_id BIGINT NOT NULL REFERENCES %s.roles(id),
+                PRIMARY KEY (user_id, role_id)
+            )
+        """.formatted(schemaName, schemaName, schemaName));
+
+        jdbcTemplate.execute("""
             CREATE TABLE IF NOT EXISTS %s.categories (
                 id BIGSERIAL PRIMARY KEY,
                 name VARCHAR(255) NOT NULL
